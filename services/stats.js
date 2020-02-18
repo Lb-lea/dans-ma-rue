@@ -17,27 +17,30 @@ exports.statsByArrondissement = async (client, callback) => {
         body: query
     })
 
-    callback({
-        count: result.body.aggregations.arrondissement.buckets
-    })
+    const formattedResult = result.body.aggregations.arrondissement.buckets.map(bucket => ({
+        arrondissement: bucket.key,
+        count: bucket.doc_count
+    }));
+
+    callback(formattedResult)
 
 }
 
-exports.statsByType =  async(client, callback) => {
+exports.statsByType = async (client, callback) => {
     query = {
-        "aggs" : {
-            "type" : {
+        "aggs": {
+            "type": {
                 "terms": {
                     "field": "type.keyword",
-                    "order" : { "_count" : "desc" },
-                    "size" : 5
+                    "order": { "_count": "desc" },
+                    "size": 5
                 },
-                "aggs" : {
-                    "sous-type" : {
+                "aggs": {
+                    "sous_types": {
                         "terms": {
-                            "field": "sous-type.keyword",
-                            "order" : { "_count" : "desc" },
-                            "size" : 5
+                            "field": "sous_type.keyword",
+                            "order": { "_count": "desc" },
+                            "size": 5
                         }
                     }
                 }
@@ -49,17 +52,41 @@ exports.statsByType =  async(client, callback) => {
         size: 0,
         body: query
     })
-    console.log(result.body.aggregations.type)
 
-    callback({
-        count: result.body.aggregations.type.buckets
-    })
+    const formattedResult = result.body.aggregations.type.buckets.map(result => ({
+        type: result.key,
+        count: result.doc_count,
+        sous_types: result.sous_types.buckets.map(sous_type => ({
+            sous_type: sous_type.key,
+            count: sous_type.doc_count
+        }))
+    }));
+
+    callback(formattedResult)
 
 }
 
-exports.statsByMonth = (client, callback) => {
-    // TODO Trouver le top 10 des mois avec le plus d'anomalies
-    callback([]);
+exports.statsByMonth = async (client, callback) => {
+    query = {
+        "aggs": {
+            "mois_declaration": {
+                "terms": {
+                    "field": "mois_declaration.keyword",
+                    "order": { "_count": "desc" },
+                    "size": 10
+                },
+            }
+        }
+    }
+    const result = await client.search({
+        index: indexName,
+        size: 0,
+        body: query
+    })
+
+    callback({
+        count: result.body.aggregations.mois_declaration
+    })
 }
 
 exports.statsPropreteByArrondissement = (client, callback) => {
