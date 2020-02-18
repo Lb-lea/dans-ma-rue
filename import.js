@@ -6,16 +6,6 @@ const { Client } = require('@elastic/elasticsearch');
 const indexName = config.get('elasticsearch.index_name');
 
 
-var emptyToNull = function (str) {
-    return (str && str.trim() !== "") ? str : null;
-}
-
-var buildLocation = function (data) {
-    var lon = emptyToNull(data["geo_point_2d"].split(",")[0]);
-    var lat = emptyToNull(data["geo_point_2d"].split(",")[1]);
-    return lon && lat ? [parseFloat(lon), parseFloat(lat)] : null;
-}
-
 function createBulkInsertQuery(anomalies) {
     const body = anomalies.reduce((acc, anomalie) => {
         const { object_id, ...params } = anomalie;
@@ -76,7 +66,7 @@ async function run() {
                 "prefixe": data["PREFIXE"],
                 "intervenant": data["INTERVENANT"],
                 "conseil_de_quartier": data["CONSEIL DE QUARTIER"],
-                "location": buildLocation(data)
+                "location": data["geo_point_2d"]
             }
             anomalies.push(anomalie)
             //console.log(problem);
