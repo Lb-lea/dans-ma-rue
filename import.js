@@ -32,6 +32,27 @@ async function run() {
     // Create Elasticsearch client
     const client = new Client({ node: config.get('elasticsearch.uri') });
 
+    try {
+        if (!(await client.indices.exists({ index: indexName })).body) {
+            await client.indices.create({
+                index: indexName,
+                body: {
+                    mappings: {
+                        properties: {
+                            location: { type: "geo_point" }
+                        }
+                    }
+                }
+            });
+            console.log("Created new index '" + indexName + "'");
+        } else {
+            console.log("Index already exists, skipping index creation");
+        }
+    } catch (err) {
+        console.trace(err.message);
+    }
+
+
     var anomalies = [];
     // TODO il y a peut être des choses à faire ici avant de commencer ... 
 
