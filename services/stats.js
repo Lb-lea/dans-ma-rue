@@ -16,7 +16,6 @@ exports.statsByArrondissement = async (client, callback) => {
         size: 0,
         body: query
     })
-    console.log(result.body.aggregations.arrondissement.buckets)
 
     callback({
         count: result.body.aggregations.arrondissement.buckets
@@ -24,9 +23,38 @@ exports.statsByArrondissement = async (client, callback) => {
 
 }
 
-exports.statsByType = (client, callback) => {
-    // TODO Trouver le top 5 des types et sous types d'anomalies
-    callback([]);
+exports.statsByType =  async(client, callback) => {
+    query = {
+        "aggs" : {
+            "type" : {
+                "terms": {
+                    "field": "type.keyword",
+                    "order" : { "_count" : "desc" },
+                    "size" : 5
+                },
+                "aggs" : {
+                    "sous-type" : {
+                        "terms": {
+                            "field": "sous-type.keyword",
+                            "order" : { "_count" : "desc" },
+                            "size" : 5
+                        }
+                    }
+                }
+            }
+        }
+    }
+    const result = await client.search({
+        index: indexName,
+        size: 0,
+        body: query
+    })
+    console.log(result.body.aggregations.type)
+
+    callback({
+        count: result.body.aggregations.type.buckets
+    })
+
 }
 
 exports.statsByMonth = (client, callback) => {
