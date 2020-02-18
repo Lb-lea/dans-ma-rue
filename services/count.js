@@ -27,9 +27,25 @@ exports.count = async (client, from, to, callback) => {
     })
 }
 
-exports.countAround = (client, lat, lon, radius, callback) => {
-    // TODO Compter le nombre d'anomalies autour d'un point géographique, dans un rayon donné
+exports.countAround = async (client, lat, lon, radius, callback) => {
+    //POST / index / _count
+    query = {
+        "query": {
+            "geo_distance": {
+                "distance": radius,
+                "location": [lat, lon]
+            }
+
+
+        }
+    }
+    const result = await client.count({
+        index: indexName,
+        body: query
+    })
+    console.log(result)
+
     callback({
-        count: 0
+        count: result.body.count
     })
 }
