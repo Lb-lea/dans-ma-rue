@@ -1,43 +1,30 @@
 const config = require('config');
 const indexName = config.get('elasticsearch.index_name');
 
-exports.count = (client, from, to, callback) => {
-    // TODO Compter le nombre d'anomalies entre deux dates
-    //POST / anomalies / _search
+exports.count = async (client, from, to, callback) => {
 
+    //POST / index / _count
     query = {
         "query": {
-            "filtered": {
-                "query": {
-                    "query_string": { "query": "searchTerm", "default_operator": "AND" }
-                },
-                "filter": {
-                    "range": {
-                        "@timestamp": {
-                            "gte": from,
-                            "lte": to
-                        }
-                    }
+            "range": {
+                "@timestamp": {
+                    "format": "yyyy-MM-dd",
+                    "gte": from,
+                    "lte": to
                 }
             }
 
         }
     }
-
-    client.count({
+    const result = await client.count({
         index: indexName,
-        body: { query }
-    }, {
-        ignore: [404],
-        maxRetries: 3
-    }, (err, result) => {
-        if (err) console.log(err)
-        callback({
-            count: result
-        })
+        body: query
     })
+    console.log(result)
 
-
+    callback({
+        count: result.body.count
+    })
 }
 
 exports.countAround = (client, lat, lon, radius, callback) => {
