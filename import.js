@@ -44,7 +44,6 @@ async function run() {
 
 
     var anomalies = [];
-    // TODO il y a peut être des choses à faire ici avant de commencer ... 
 
     // Read CSV file
     fs.createReadStream('dataset/dans-ma-rue.csv')
@@ -72,7 +71,6 @@ async function run() {
             //console.log(problem);
         })
         .on('end', () => {
-            // TODO il y a peut être des choses à faire à la fin aussi ?
             _.chunk(anomalies, 20000).forEach(chunk => client.bulk(createBulkInsertQuery(chunk)), (err, resp) => {
                 if (err) console.trace(err.message);
                 else console.log(`Inserted ${resp.body.items.length} anomalies`);

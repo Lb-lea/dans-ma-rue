@@ -35,8 +35,6 @@ exports.countAround = async (client, lat, lon, radius, callback) => {
                 "distance": radius,
                 "location": [lat, lon]
             }
-
-
         }
     }
     const result = await client.count({
